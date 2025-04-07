@@ -42,6 +42,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("./public")))
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/security", securityHandler)
+	http.HandleFunc("/log-bot-activity", logBotActivityHandler)
 
 	// Start server
 	log.Printf("Server starting on :%s", port)
@@ -298,4 +299,78 @@ func sendTelegramMessage(text string) error {
 	}
 
 	return nil
+}
+
+// BotActivity represents data sent from the client about detected bot activity
+type BotActivity struct {
+	Score       int       `json:"score"`
+	Fingerprint string    `json:"fingerprint"`
+	Timestamp   time.Time `json:"timestamp"`
+	IP          string    `json:"ip,omitempty"`
+}
+
+// logBotActivityHandler receives and logs bot activity detected by the client
+func logBotActivityHandler(w http.ResponseWriter, r *http.Request) {
+	// Set CORS headers
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	// Handle preflight request
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// Only accept POST requests
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Read request body
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Error reading request body", http.StatusBadRequest)
+		return
+	}
+
+	// Parse JSON body
+	var activity BotActivity
+	if err := json.Unmarshal(bodyBytes, &activity); err != nil {
+		log.Printf("JSON parse error for bot activity: %v", err)
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	// Get client IP
+	ip := r.RemoteAddr
+	if forwarded := r.Header.Get("X-Forwarded-For"); forwarded != "" {
+		ip = strings.Split(forwarded, ",")[0]
+	} else {
+		ip = strings.Split(ip, ":")[0]
+	}
+	activity.IP = ip
+
+	// Log the bot activity
+	log.Printf("Bot activity detected: Score=%d, Fingerprint=%s, IP=%s", 
+		activity.Score, activity.Fingerprint, activity.IP)
+
+	// Send to Telegram
+	message := fmt.Sprintf(
+		"🤖 Bot Activity Detected 🤖\n\nScore: %d\nFingerprint: %s\nIP: %s\nTimestamp: %s",
+		activity.Score,
+		activity.Fingerprint,
+		activity.IP,
+		activity.Timestamp.Format(time.RFC3339),
+	)
+
+	if err := sendTelegramMessage(message); err != nil {
+		log.Printf("Failed to send bot activity to Telegram: %v", err)
+	}
+
+	// Return success response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"status":"success"}`));
 }
